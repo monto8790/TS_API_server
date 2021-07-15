@@ -1,0 +1,14 @@
+{
+  "http": {
+    "port": 8790
+  },
+  "db": {
+    "scheme": "mongodb://",
+    "host": "localhost",
+    "port": 27017,
+    "name": "tssev",
+    "auth": false,
+    "id": "tssev",
+    "pw": "keti1234"
+  }
+}
