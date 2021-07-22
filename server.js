@@ -4,8 +4,9 @@ const express = require('express');
 const db = require('./db/init');
 // var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
-var indexRouter = require('./routes/index');
+var fileUpload = require('express-fileupload');
+var rootRouter = require('./routes/root_api');
+var file_Router = require('./routes/model_file_api');
 
 // var getmodel = require('./routes/getmodel');
 // var postmodel = require('./routes/postmodel');
@@ -15,12 +16,15 @@ db.init_db();
 const app = express ();
 
 
-
+app.use(fileUpload({
+    createParentPath: true
+}))
 app.use(express.json());
 app.use(logger('dev'));
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/Models',indexRouter);
+app.use('/Models',rootRouter);
+app.use('/upload',file_Router);
 const server = app.listen(3001, () => {
     console.log("Start Server : localhost:3001");
 })
