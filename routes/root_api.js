@@ -19,95 +19,58 @@ const Files = require("../db_models/file_schemal");
 //     error.statusCode = statusCode;
 //     throw error; // error 를 핸들링 하는 하는 미들웨어로 에러를 던진다.
 // };
+function bodychecker(body){
 
-router.post('/', async (req, res) => {
+
+}
+router.post('/', async (req, res, next) => {
+    if(req.body.hasOwnProperty("ts:ml")){
     let res_pars = req.body["ts:ml"];
+
     if(!res_pars.hasOwnProperty("model_id")){
         res_pars.model_id = "ts"+ res_pars.model_name
     }
-    let db_res = {};
     let model_res = new Models({
         model_name: res_pars.model_name,
         platform: res_pars.platform,
         model_id: res_pars.model_id,
         version: res_pars.version,
     })
-    // var test = Models.findById(res_pars.model_id);
-    // // console.log(test);
-    // console.log(test._id);
-    Models.create(model_res)
-        .then(models => res.send(models))
-        .catch(err => res.status(500).send(err));
-
-
-    // console.log(model_res);
-    // // modelSchema.statics.findOneByModel_id = function (model_id) {
-    // //     return this.findOne({ model_id });
-    // // };
-    // try{
-    //     db_res = await model_res.save();
-    //     res.status(201).json({message:"Model creatd"});
-    // }catch (err) {
-    //     console.log(err);
-    // }
-
-    // try{
-    //     const { model_id } = req.body;
-    //     let cin
-    //     console.log(model_id);
-    //     if(model_id === ""){
-    //
-    //         //model id 생성
-    //     }
-    //     else{
-    //         // const model_name  = await models.findOne({model_id});
-    //         // if(model_name) errorGenerator("Model_ID가 중복됩니다. 다시 생성해주세요", 404);
-    //         //
-    //         // await creatmodelsData(req.body);
-    //         // console.log(model_name);
-    //
-    //     }
-    //
-    // }catch (err) {
-    //     console.log("123");
-    //     // next(err);
-    //
-    // }
-
-    //라우터 붙이기
-    //db 붙이기
-    //
-    // console.log(req.body);
-    // data.push(req.body);
-    // console.log(data)
-    // res.json(data);
+    let model_id = res_pars.model_id;
+    Models.findOneByModel_id(model_id)
+        .then((models) => {
+            if (!models){
+                Models.create(model_res)
+                    .then(models => res.status(200).send(models))
+                    .catch(err => res.status(500).send(err));
+                // return res.status(404).send({ err: 'models not found' });
+                // res.send(`findOne successfully: ${models}`);
+            }
+            else{
+                res.status(409).send({ err: 'MODELS INFO CONFLICT' });
+                // res.send(`MODELS INFO CONFLICT: ${models}`);
+            }
+        }).catch(err => res.status(500).send(err));
+    }
+    else{
+        res.status(400).send({err:'BAD REQUEST'});
+    }
+    // next(err);
 })
 
-// router.put('/:model_id', async (req, res) => {
-//
-//     let model_id = req.params["model_id"];
-//     let arr = data.map(data => {
-//
-//         if(data.id != model_id)
-//             // data.name = name
-//             data.id = model_id;
-//             console.log(model_id);
-//
-//         return {
-//             id: data.id,
-//
-//         }
-//     })
-//     // if(req.params["model_id"] == id){
-//     //     console.log("ok");
-//     // }
-//     //db에 쿼리 요청을 통해 해당 id에 맞는 데이터를 불러와 수정을 함 or 해당 디렉토리의 수정 과정을 거침
-//     //수정 model name
-//     // platform name 수정
-//     // verison 수정
-//     // model file수정?
-//     res.json(data);
-// });
+router.put('/:model_id', async (req, res) => {
+
+
+    // if(req.params["model_id"] == id){
+    //     console.log("ok");
+    // }
+    //db에 쿼리 요청을 통해 해당 id에 맞는 데이터를 불러와 수정을 함 or 해당 디렉토리의 수정 과정을 거침
+    //수정 model name
+    // platform name 수정
+    // verison 수정
+    // model file수정?
+    res.json(data);
+});
 //
 //
 // router.delete('/:model_id', async (req, res) => {
@@ -120,13 +83,16 @@ router.post('/', async (req, res) => {
 //     res.send(200);
 // })
 //
-router.get('/:model_id', async (req, res) => {
+router.get('/:model_id', async (req, res,next) => {
+    // console.log(req.params);
     let model_id = req.params["model_id"];
     // let models = {};
-    let models = await Models.findOne({model_id});
-    console.log(models.__id);
-    console.log(models._id);
-    console.log(models[0]._id);
+    console.log(model_id);
+    let models = await Models.find({model_id});
+    // console.log(models)
+    // console.log(models.__id);
+    console.log(models);
+    // console.log(models[0]._id);
     // if(err) return res.status(500).send({error:"datbase faillure"});
     res.json(models);
 });
@@ -156,19 +122,19 @@ router.get('/:model_id', async (req, res) => {
 // // });
 //
 //
-// router.use(function(req, res, next) {
-//   // next(createError(404));
-// });
+/*router.use(function(req, res, next) {
+  next(createError(404));
+});
 // //
-// // // error handler
-// router.use(function(err, req, res, next) {
-//   // set locals, only providing error in development
-//   // res.locals.message = err.message;
-//   // res.locals.error = req.app.get('env') === 'development' ? err : {};
-//
-//   // render the error page
-//   // res.status(err.status || 500);
-//   // res.render('error');
-// });
+// // error handler
+router.use(function(err, req, res, next) {
+  set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});*/
 
 module.exports = router;
